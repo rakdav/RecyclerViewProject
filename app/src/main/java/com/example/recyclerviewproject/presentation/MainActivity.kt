@@ -5,6 +5,10 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainer
+import androidx.fragment.app.FragmentContainerView
+import androidx.fragment.app.replace
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -18,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var viewModel: MainViewModel
     private lateinit var stateListAdapter:StateAdapter
     private lateinit var linearLayoutManager:LinearLayoutManager
+    private var stateItemContainer:FragmentContainerView?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -28,21 +33,39 @@ class MainActivity : AppCompatActivity() {
         viewModel.stateList.observe(this){
            stateListAdapter.submitList(it)
         }
-        binding.fab.setOnClickListener {
-            val intent=StateItemActivity.newIntentAddItem(this)
-            startActivity(intent)
+        binding.fab?.setOnClickListener {
+            if(isOnePaneMode()) {
+                val intent = StateItemActivity.newIntentAddItem(this)
+                startActivity(intent)
+            }
+            else{
+                //launchFragment(StateItemFragment.newInstance())
+            }
         }
+    }
+//    override fun onEditingFinished(){
+//        supportFragmentManager.popBackStack()
+//    }
+    private fun isOnePaneMode():Boolean{
+        return stateItemContainer==null
+    }
+    private fun launchFragment(fragment: Fragment){
+        supportFragmentManager.popBackStack()
+        supportFragmentManager.beginTransaction().replace(binding.container!!.id,fragment).
+                addToBackStack(null).commit()
     }
     private fun setupRecyclerView(){
         val rvList=binding.list
         with(rvList){
             stateListAdapter= StateAdapter()
-            adapter=stateListAdapter
-            binding.list.layoutManager=linearLayoutManager
+            this?.adapter =stateListAdapter
+            binding.list!!.layoutManager=linearLayoutManager
 
         }
         setupClickListener()
-        setupSwipeListener(rvList)
+        if (rvList != null) {
+            setupSwipeListener(rvList)
+        }
     }
     private fun setupClickListener(){
         stateListAdapter.onStateItemOnClickListener={
