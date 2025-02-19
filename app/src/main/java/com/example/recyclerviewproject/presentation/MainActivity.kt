@@ -6,7 +6,9 @@ import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.recyclerviewproject.R
 import com.example.recyclerviewproject.databinding.ActivityMainBinding
 import com.example.recyclerviewproject.domain.State
@@ -40,12 +42,30 @@ class MainActivity : AppCompatActivity() {
 
         }
         setupClickListener()
-    //    setupSwipeListener(rvList)
+        setupSwipeListener(rvList)
     }
     private fun setupClickListener(){
         stateListAdapter.onStateItemOnClickListener={
             val intent=StateItemActivity.newIntentEditItem(this,it.id)
             startActivity(intent)
         }
+    }
+    private fun setupSwipeListener(rvList:RecyclerView){
+        val callBack=object:ItemTouchHelper.SimpleCallback(0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT){
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val item=stateListAdapter.currentList[viewHolder.adapterPosition]
+                viewModel.deleteStateItem(item)
+            }
+        }
+        val itemTouchHelper=ItemTouchHelper(callBack)
+        itemTouchHelper.attachToRecyclerView(rvList)
     }
 }
